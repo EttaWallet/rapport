@@ -7,14 +7,13 @@ import {
   AuthenticatedLnd,
   SubscribeToInvoiceInvoiceUpdatedEvent,
   cancelHodlInvoice,
-  openChannel,
   payViaPaymentRequest,
   settleHodlInvoice,
   subscribeToInvoice,
 } from 'lightning';
 import { Logger } from '@nestjs/common';
 import { TimeoutError, ValidationError } from '../errors';
-import { DEFAULT_INBOUND_LIQUIDITY } from 'src/config';
+import { createChannel } from '.';
 
 type Args = {
   expiry: string;
@@ -91,12 +90,9 @@ export default function ({
 
             Logger.log(`Payment result: ${id}`, result);
             if (result.secret) {
-              await openChannel({
+              await createChannel({
                 lnd,
-                local_tokens: DEFAULT_INBOUND_LIQUIDITY,
-                partner_public_key: partnerPubKey,
-                is_private: true,
-                is_trusted_funding: true,
+                mobileNode: partnerPubKey,
               })
                 .then((openChannelRes) => {
                   console.log('channel open successful: ', openChannelRes);
